@@ -1,0 +1,15 @@
+// Erasers erase each other
+E = E -> ()
+
+// Constructors commute
+C(a0, a1) = C(b0, b1) -> a0 = b0, a1 = b1
+
+// Duplicators commute
+D(a0, a1) = D(b0, b1) -> a0 = b0, a1 = b1
+
+// Constructors and Duplicators do that weird thing
+C(a0, a1) = D(b0, b1) = hh
+
+// Eraser distributes
+E = D(a, b) -> E = a, E = b
+
