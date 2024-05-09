@@ -75,10 +75,7 @@ impl PartialEq for Term {
 impl Debug for Term {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Term::Port(Port {
-                name: Some(name), ..
-            }) => write!(f, "p_{name}"),
-            Term::Port(Port { id, .. }) => write!(f, "p_{id}"),
+            Term::Port(port) => write!(f, "{port:?}"),
             Term::Agent(agent) => write!(f, "{agent:?}"),
         }
     }

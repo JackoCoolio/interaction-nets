@@ -63,19 +63,19 @@ impl Expression {}
 fn main() {
     let id_alloc = IdAllocator::new();
 
-    let a_port = Port::new(id_alloc.create_id());
-    let a = Agent::new_constructor(id_alloc.create_id(), a_port.clone(), a_port);
+    let a_port = Port::new(id_alloc.create_id()).with_name("a_port");
+    let a = Agent::new_constructor(id_alloc.create_id(), a_port.clone(), a_port).with_name("a");
 
-    let c_port = Port::new(id_alloc.create_id());
-    let c = Agent::new_constructor(id_alloc.create_id(), c_port.clone(), c_port);
+    let c_port = Port::new(id_alloc.create_id()).with_name("c_port");
+    let c = Agent::new_constructor(id_alloc.create_id(), c_port.clone(), c_port).with_name("c");
 
-    let ed_port = Port::new(id_alloc.create_id());
-    let out_port = Port::new(id_alloc.create_id());
-    let e = Agent::new_constructor(id_alloc.create_id(), ed_port.clone(), out_port);
+    let ed_port = Port::new(id_alloc.create_id()).with_name("ed_port");
+    let out_port = Port::new(id_alloc.create_id()).with_name("out_port");
+    let e = Agent::new_constructor(id_alloc.create_id(), ed_port.clone(), out_port).with_name("e");
 
-    let d = Agent::new_constructor(id_alloc.create_id(), e, ed_port);
+    let d = Agent::new_constructor(id_alloc.create_id(), e, ed_port).with_name("d");
 
-    let b = Agent::new_constructor(id_alloc.create_id(), c, d);
+    let b = Agent::new_constructor(id_alloc.create_id(), c, d).with_name("b");
 
     let connections = vec![Term::from(a).connect(b.into())];
 
@@ -148,6 +148,8 @@ impl Runtime {
                         .remove_by_left_key(&id)
                         .expect("invalid runtime state: action stack had invalid term ID");
 
+                    println!("reducing {:?} <> {:?}", left, right);
+
                     let Term::Agent(left) = left else {
                         panic!("invalid runtime state: reduce action pointed to a port");
                     };
@@ -157,8 +159,10 @@ impl Runtime {
                     };
 
                     let result = self.rulebook.rewrite(&self.ctx, left, right);
+                    println!("* resulting connections:");
 
                     for Connection(left, right) in result.new_connections {
+                        println!("    * {:?} <> {:?}", left, right);
                         self.push_connection(left, right);
                     }
                 }

@@ -30,9 +30,9 @@ pub struct Agent {
 }
 
 impl Agent {
-    /// Annotates the `Agent` with a `name`.
-    pub fn name(&mut self, name: impl Into<String>) {
+    pub fn with_name(mut self, name: impl Into<String>) -> Self {
         self.name = Some(name.into());
+        self
     }
 
     pub fn ports_array<const N: usize>(self) -> Result<[Term; N], usize> {
