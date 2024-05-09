@@ -5,7 +5,7 @@ use crate::net::{
 
 use super::{context::RewriteContext, rulebook::ActivePairPattern, RewriteResult};
 
-pub(super) enum Builtin {
+pub enum Builtin {
     EraEra,
     CtrCtr,
     DupDup,

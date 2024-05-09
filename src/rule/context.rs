@@ -1,6 +1,6 @@
 use crate::net::{
     id::IdAllocator,
-    term::{Agent, AgentKind, Term},
+    term::{Agent, AgentKind, Port, Term},
 };
 
 pub struct RewriteContext {
@@ -9,9 +9,7 @@ pub struct RewriteContext {
 
 impl RewriteContext {
     pub fn create_port(&self) -> Term {
-        Term::Port {
-            id: self.id_alloc.create_id(),
-        }
+        Term::Port(Port::new(self.id_alloc.create_id()))
     }
 
     #[inline]
@@ -20,10 +18,6 @@ impl RewriteContext {
     }
 
     pub fn create_agent(&self, kind: AgentKind, ports: &[Term]) -> Term {
-        Term::Agent(Agent {
-            id: self.id_alloc.create_id(),
-            kind,
-            ports: ports.into(),
-        })
+        Term::Agent(Agent::new(self.id_alloc.create_id(), kind, ports))
     }
 }

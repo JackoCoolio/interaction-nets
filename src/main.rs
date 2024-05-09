@@ -1,6 +1,6 @@
-use std::{rc::Rc};
+#![allow(unused)]
 
-
+use std::rc::Rc;
 
 use map::ConnectionMap;
 use net::{connection::Connection, term::Term};
@@ -8,7 +8,10 @@ use net::{connection::Connection, term::Term};
 use rule::rulebook::Rulebook;
 
 use crate::{
-    net::{id::IdAllocator, term::Agent},
+    net::{
+        id::IdAllocator,
+        term::{Agent, Port},
+    },
     rule::context::RewriteContext,
 };
 
@@ -60,19 +63,19 @@ impl Expression {}
 fn main() {
     let id_alloc = IdAllocator::new();
 
-    let a_port = Term::new_port(id_alloc.create_id());
+    let a_port = Port::new(id_alloc.create_id());
     let a = Agent::new_constructor(id_alloc.create_id(), a_port.clone(), a_port);
 
-    let c_port = Term::new_port(id_alloc.create_id());
+    let c_port = Port::new(id_alloc.create_id());
     let c = Agent::new_constructor(id_alloc.create_id(), c_port.clone(), c_port);
 
-    let ed_port = Term::new_port(id_alloc.create_id());
-    let out_port = Term::new_port(id_alloc.create_id());
+    let ed_port = Port::new(id_alloc.create_id());
+    let out_port = Port::new(id_alloc.create_id());
     let e = Agent::new_constructor(id_alloc.create_id(), ed_port.clone(), out_port);
 
-    let d = Agent::new_constructor(id_alloc.create_id(), e.into(), ed_port);
+    let d = Agent::new_constructor(id_alloc.create_id(), e, ed_port);
 
-    let b = Agent::new_constructor(id_alloc.create_id(), c.into(), d.into());
+    let b = Agent::new_constructor(id_alloc.create_id(), c, d);
 
     let connections = vec![Term::from(a).connect(b.into())];
 
