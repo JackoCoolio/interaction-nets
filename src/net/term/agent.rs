@@ -84,12 +84,12 @@ impl Agent {
 
 impl Debug for Agent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}_", self.kind)?;
+        write!(f, "{:?}", self.kind)?;
 
         if let Some(name) = &self.name {
-            write!(f, "{}(", name)?;
+            write!(f, "<{},{}>(", self.id, name)?;
         } else {
-            write!(f, "{}(", self.id)?;
+            write!(f, "<{}>(", self.id)?;
         }
 
         let mut ports_iter = self.ports.iter();

@@ -22,9 +22,10 @@ impl Debug for Port {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self {
-                name: Some(name), ..
-            } => write!(f, "p<{}>", name),
-            Self { id, .. } => write!(f, "p_{}", id),
+                id,
+                name: Some(name),
+            } => write!(f, "p<{},{}>", id, name),
+            Self { id, .. } => write!(f, "p_<{}>", id),
         }
     }
 }
