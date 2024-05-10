@@ -31,6 +31,13 @@ impl std::borrow::Borrow<usize> for Term {
 }
 
 impl Term {
+    pub fn with_name(mut self, name: impl Into<String>) -> Self {
+        match self {
+            Term::Port(port) => Self::Port(port.with_name(name)),
+            Term::Agent(agent) => Self::Agent(agent.with_name(name)),
+        }
+    }
+
     pub fn id(&self) -> &usize {
         match self {
             Self::Agent(Agent { id, .. }) => id,
