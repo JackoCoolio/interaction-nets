@@ -8,6 +8,10 @@ pub struct RewriteContext {
 }
 
 impl RewriteContext {
+    pub fn new(id_alloc: IdAllocator) -> Self {
+        Self { id_alloc }
+    }
+
     pub fn create_port(&self) -> Term {
         Term::Port(Port::new(self.id_alloc.create_id()))
     }

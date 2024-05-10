@@ -10,7 +10,7 @@ use rule::rulebook::Rulebook;
 use crate::{
     net::{
         id::IdAllocator,
-        term::{Agent, Port},
+        term::{Agent, AgentKind, Port},
     },
     rule::context::RewriteContext,
 };
@@ -61,25 +61,33 @@ struct Application {
 impl Expression {}
 
 fn main() {
-    let id_alloc = IdAllocator::new();
+    use AgentKind::*;
 
-    let a_port = Port::new(id_alloc.create_id()).with_name("a_port");
-    let a = Agent::new_constructor(id_alloc.create_id(), a_port.clone(), a_port).with_name("a");
+    let ctx = RewriteContext::new(IdAllocator::new());
 
-    let c_port = Port::new(id_alloc.create_id()).with_name("c_port");
-    let c = Agent::new_constructor(id_alloc.create_id(), c_port.clone(), c_port).with_name("c");
+    let a_port = ctx.create_port().with_name("a_port");
+    let a = ctx
+        .create_agent(Constructor, &[a_port.clone(), a_port])
+        .with_name("a");
 
-    let ed_port = Port::new(id_alloc.create_id()).with_name("ed_port");
-    let out_port = Port::new(id_alloc.create_id()).with_name("out_port");
-    let e = Agent::new_constructor(id_alloc.create_id(), ed_port.clone(), out_port).with_name("e");
+    let c_port = ctx.create_port().with_name("c_port");
+    let c = ctx
+        .create_agent(Constructor, &[c_port.clone(), c_port])
+        .with_name("c");
 
-    let d = Agent::new_constructor(id_alloc.create_id(), e, ed_port).with_name("d");
+    let ed_port = ctx.create_port().with_name("ed_port");
+    let out_port = ctx.create_port().with_name("out_port");
+    let e = ctx
+        .create_agent(Constructor, &[ed_port.clone(), out_port])
+        .with_name("e");
 
-    let b = Agent::new_constructor(id_alloc.create_id(), c, d).with_name("b");
+    let d = ctx.create_agent(Constructor, &[e, ed_port]).with_name("d");
 
-    let connections = vec![Term::from(a).connect(b.into())];
+    let b = ctx.create_agent(Constructor, &[c, d]).with_name("b");
 
-    let runtime = Runtime::new(connections, Rulebook::default(), id_alloc);
+    let connections = vec![a.connect(b)];
+
+    let runtime = Runtime::new(connections, Rulebook::default(), ctx);
 
     let net: Vec<_> = runtime.normalize().into_iter().collect();
 
@@ -106,13 +114,13 @@ impl Runtime {
     pub fn new(
         connections: impl IntoIterator<Item = Connection>,
         rulebook: Rulebook,
-        id_alloc: IdAllocator,
+        ctx: RewriteContext,
     ) -> Self {
         let mut runtime = Self {
             connections: ConnectionMap::<_, _>::new(),
             action_stack: Vec::new(),
             rulebook,
-            ctx: RewriteContext { id_alloc },
+            ctx,
         };
 
         for Connection(left, right) in connections {
