@@ -122,20 +122,71 @@ impl Runtime {
         runtime
     }
 
-    fn push_connection(&mut self, a: Term, b: Term) {
-        match (&a, &b) {
-            (Term::Agent(_), Term::Agent(_)) => {
-                self.action_stack.push(Action::Reduce(*a.id()));
-                self.connections.insert(a, b);
+    fn push_connection(&mut self, left: Term, right: Term) {
+        println!("current map state:");
+        self.connections.dump();
+        println!("pushing {:?} <> {:?}", left, right);
+        match (left, right) {
+            (left @ Term::Agent(_), right @ Term::Agent(_)) => {
+                println!("\t* agent<>agent, pushing reduce to stack");
+                self.action_stack.push(Action::Reduce(*left.id()));
+                self.connections.insert(left, right).unwrap();
             }
-            (Term::Port { .. }, Term::Port { .. }) => {
+            (left @ Term::Port { .. }, right @ Term::Port { .. }) => {
                 // TODO: reduce
-                self.connections.insert(a, b);
+                println!(
+                    "\t* port<>port, checking if {:?} or {:?} are already in map",
+                    left, right
+                );
+
+                if let Some((_, other_right)) = self.connections.remove_by_left_key(left.id()) {
+                    println!(
+                        "\t\t* port already exists, connecting {:?}<>{:?}",
+                        right, other_right
+                    );
+                    return self.push_connection(right, other_right);
+                }
+
+                if let Some((_, other_right)) = self.connections.remove_by_left_key(right.id()) {
+                    println!(
+                        "\t\t* port already exists, connecting {:?}<>{:?}",
+                        left, other_right
+                    );
+                    return self.push_connection(left, other_right);
+                }
+
+                if let Some((other_left, _)) = self.connections.remove_by_right_key(right.id()) {
+                    println!(
+                        "\t\t* port already exists, connecting {:?}<>{:?}",
+                        left, other_left
+                    );
+                    return self.push_connection(left, other_left);
+                }
+
+                if let Some((other_left, _)) = self.connections.remove_by_right_key(left.id()) {
+                    println!(
+                        "\t\t* port already exists, connecting {:?}<>{:?}",
+                        left, other_left
+                    );
+                    return self.push_connection(right, other_left);
+                }
+
+                self.connections.insert(left, right).unwrap();
             }
-            (Term::Port { .. }, Term::Agent(_)) => {
-                self.connections.insert(a, b);
+            (left @ Term::Port { .. }, right @ Term::Agent(_)) => {
+                println!("\t* port<>agent, checking for existing port");
+                if let Some((_, other_right)) = self.connections.remove_by_left(&left) {
+                    println!(
+                        "\t\t* port already exists, connecting {:?}<>{:?}",
+                        right, other_right
+                    );
+                    // we can just connect the two together :)
+                    self.push_connection(right, other_right)
+                } else {
+                    self.connections.insert(left, right).unwrap();
+                }
             }
-            (Term::Agent(_), Term::Port { .. }) => self.push_connection(b, a),
+            (left @ Term::Agent(_), right @ Term::Port { .. }) => self.push_connection(right, left),
         };
     }
 
