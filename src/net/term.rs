@@ -20,10 +20,7 @@ impl AsHashKey for Term {
     type Key = usize;
 
     fn as_key(&self) -> Self::Key {
-        match self {
-            Self::Agent(Agent { id, .. }) => *id,
-            Self::Port(Port { id, .. }) => *id,
-        }
+        *self.id()
     }
 }
 
